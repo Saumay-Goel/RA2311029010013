@@ -1,6 +1,6 @@
 type LogLevel = "debug" | "info" | "warn" | "error" | "fatal";
 
-type FrontendPackage =
+type LogPackage =
   | "api"
   | "component"
   | "hook"
@@ -10,9 +10,7 @@ type FrontendPackage =
   | "auth"
   | "config"
   | "middleware"
-  | "utils";
-
-type BackendPackage =
+  | "utils"
   | "cache"
   | "controller"
   | "cron_job"
@@ -21,13 +19,7 @@ type BackendPackage =
   | "handler"
   | "repository"
   | "route"
-  | "service"
-  | "auth"
-  | "config"
-  | "middleware"
-  | "utils";
-
-type LogPackage = FrontendPackage | BackendPackage;
+  | "service";
 
 export interface LogPayload {
   stack: "frontend" | "backend";
@@ -36,12 +28,22 @@ export interface LogPayload {
   message: string;
 }
 
-const LOG_ENDPOINT = "http://20.207.122.201/evaluation-service/logs";
+const LOG_ENDPOINT = "/api/logs";
 
-let AUTH_TOKEN = "";
+let AUTH_TOKEN = process.env.NEXT_PUBLIC_EVAL_AUTH_TOKEN ?? "";
 
 export const setAuthToken = (token: string): void => {
   AUTH_TOKEN = token;
+};
+
+const internalErr = (msg: string): void => {
+  if (
+    typeof process !== "undefined" &&
+    process.stderr &&
+    typeof process.stderr.write === "function"
+  ) {
+    process.stderr.write(msg + "\n");
+  }
 };
 
 export const Log = async (
@@ -68,11 +70,9 @@ export const Log = async (
     });
 
     if (!response.ok) {
-      process.stderr.write(`[Logging Middleware] Failed: ${response.status}\n`);
+      internalErr(`[Logging Middleware] Failed: ${response.status}`);
     }
   } catch (error) {
-    process.stderr.write(
-      `[Logging Middleware] Network error: ${String(error)}\n`,
-    );
+    internalErr(`[Logging Middleware] Network error: ${String(error)}`);
   }
 };

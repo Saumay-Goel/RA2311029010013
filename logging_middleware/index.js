@@ -1,31 +1,35 @@
-/**
- * @param stack
- * @param level
- * @param packageName
- * @param message
- */
-export const Log = async (stack, level, packageName, message) => {
-    const payload = {
-        stack: stack,
-        level: level,
-        package: packageName,
-        message: message,
-    };
-    try {
-        const response = await fetch("http://20.207.122.201/evaluation-service/log", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer YOUR_ACCESS_TOKEN`,
-            },
-            body: JSON.stringify(payload),
-        });
-        if (!response.ok) {
-            console.warn(`[Logging Middleware] Remote logging failed with status: ${response.status}`);
-        }
-    }
-    catch (error) {
-        console.error("[Logging Middleware] Network error while sending log:", error);
-    }
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.Log = exports.setAuthToken = void 0;
+const LOG_ENDPOINT = "http://20.207.122.201/evaluation-service/logs";
+let AUTH_TOKEN = "";
+const setAuthToken = (token) => {
+  AUTH_TOKEN = token;
 };
-//# sourceMappingURL=index.js.map
+exports.setAuthToken = setAuthToken;
+const Log = async (stack, level, packageName, message) => {
+  const payload = {
+    stack,
+    level,
+    package: packageName,
+    message,
+  };
+  try {
+    const response = await fetch(LOG_ENDPOINT, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${AUTH_TOKEN}`,
+      },
+      body: JSON.stringify(payload),
+    });
+    if (!response.ok) {
+      process.stderr.write(`[Logging Middleware] Failed: ${response.status}\n`);
+    }
+  } catch (error) {
+    process.stderr.write(
+      `[Logging Middleware] Network error: ${String(error)}\n`,
+    );
+  }
+};
+exports.Log = Log;

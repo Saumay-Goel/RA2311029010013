@@ -1,66 +1,118 @@
-import Image from "next/image";
-import styles from "./page.module.css";
+"use client";
+
+import { useState, useEffect } from "react";
+import {
+  Typography,
+  Box,
+  CircularProgress,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  Alert,
+} from "@mui/material";
+import NotificationCard from "../components/NotificationCard";
+import { fetchNotifications } from "../services/api";
+import { CampusNotification, NotificationType } from "../types";
+import { useViewedNotifications } from "../hooks/useViewedNotifications";
+import { logInfo, logError } from "../utils/logger";
 
 export default function Home() {
+  const [notifications, setNotifications] = useState<CampusNotification[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [filterType, setFilterType] = useState<NotificationType | undefined>(
+    undefined,
+  );
+  const { viewedIds, markAsViewed } = useViewedNotifications();
+
+  useEffect(() => {
+    const loadNotifications = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        logInfo(
+          "page",
+          `Loading notifications with filter: ${filterType || "None"}`,
+        );
+        const data = await fetchNotifications(
+          filterType ? { notification_type: filterType } : undefined,
+        );
+        setNotifications(data);
+      } catch (err: unknown) {
+        logError("page", "Error fetching notifications", err); // ✅
+        setError("Failed to load notifications. Please try again.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    void loadNotifications();
+  }, [filterType]);
+
   return (
-    <div className={styles.page}>
-      <main className={styles.main}>
-        <Image
-          className={styles.logo}
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className={styles.intro}>
-          <h1>To get started, edit the page.tsx file.</h1>
-          <p>
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className={styles.ctas}>
-          <a
-            className={styles.primary}
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+    <Box>
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          mb: 4,
+        }}
+      >
+        <Typography variant="h4" sx={{ fontWeight: "bold" }}>
+          All Notifications
+        </Typography>
+        <FormControl size="small" sx={{ minWidth: 150 }}>
+          <InputLabel id="filter-label">Filter by Type</InputLabel>
+          <Select
+            labelId="filter-label"
+            value={filterType ?? ""}
+            label="Filter by Type"
+            onChange={(e) => {
+              const val = e.target.value as string;
+              setFilterType(val === "" ? undefined : (val as NotificationType));
+            }}
           >
-            <Image
-              className={styles.logo}
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className={styles.secondary}
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
-    </div>
+            <MenuItem value="">
+              <em>All</em>
+            </MenuItem>
+            <MenuItem value="Placement">Placement</MenuItem>
+            <MenuItem value="Result">Result</MenuItem>
+            <MenuItem value="Event">Event</MenuItem>
+          </Select>
+        </FormControl>
+      </Box>
+
+      {error && (
+        <Alert severity="error" sx={{ mb: 2 }}>
+          {error}
+        </Alert>
+      )}
+
+      {loading ? (
+        <Box sx={{ display: "flex", justifyContent: "center", mt: 4 }}>
+          <CircularProgress />
+        </Box>
+      ) : notifications.length === 0 ? (
+        <Typography
+          variant="body1"
+          color="text.secondary"
+          align="center"
+          sx={{ mt: 4 }}
+        >
+          No notifications found.
+        </Typography>
+      ) : (
+        notifications.map((notif) => (
+          <NotificationCard
+            key={notif.ID}
+            notification={notif}
+            isViewed={viewedIds.has(notif.ID)}
+            onMarkViewed={markAsViewed}
+          />
+        ))
+      )}
+    </Box>
   );
 }
