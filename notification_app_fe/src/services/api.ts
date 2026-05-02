@@ -12,7 +12,6 @@ export const fetchNotifications = async (
   try {
     const url = new URL("/api/notifications", window.location.origin);
 
-    // Only append if valid values
     if (params?.limit && params.limit > 0)
       url.searchParams.append("limit", params.limit.toString());
     if (params?.page && params.page > 0)

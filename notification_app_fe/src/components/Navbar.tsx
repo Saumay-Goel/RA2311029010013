@@ -51,7 +51,6 @@ export default function Navbar() {
         }}
       >
         <Toolbar sx={{ minHeight: { xs: 56, sm: 64 } }}>
-          {/* Logo */}
           <Box
             sx={{ display: "flex", alignItems: "center", flexGrow: 1, gap: 1 }}
           >
@@ -72,7 +71,6 @@ export default function Navbar() {
             </Typography>
           </Box>
 
-          {/* Desktop nav */}
           {!isMobile && (
             <Box sx={{ display: "flex", gap: 1 }}>
               {navItems.map((item) => {
@@ -108,7 +106,6 @@ export default function Navbar() {
             </Box>
           )}
 
-          {/* Mobile hamburger */}
           {isMobile && (
             <IconButton
               color="inherit"
@@ -121,7 +118,6 @@ export default function Navbar() {
         </Toolbar>
       </AppBar>
 
-      {/* Mobile Drawer */}
       <Drawer
         anchor="right"
         open={drawerOpen}
