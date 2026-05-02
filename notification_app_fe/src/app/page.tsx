@@ -40,30 +40,39 @@ export default function Home() {
         );
         setNotifications(data);
       } catch (err: unknown) {
-        logError("page", "Error fetching notifications", err); // ✅
+        logError("page", "Error fetching notifications", err);
         setError("Failed to load notifications. Please try again.");
       } finally {
         setLoading(false);
       }
     };
-
     void loadNotifications();
   }, [filterType]);
 
   return (
-    <Box>
+    <Box sx={{ px: { xs: 1, sm: 2, md: 0 } }}>
+      {/* Header row — stacks on mobile */}
       <Box
         sx={{
           display: "flex",
+          flexDirection: { xs: "column", sm: "row" },
           justifyContent: "space-between",
-          alignItems: "center",
+          alignItems: { xs: "flex-start", sm: "center" },
+          gap: { xs: 2, sm: 0 },
           mb: 4,
         }}
       >
-        <Typography variant="h4" sx={{ fontWeight: "bold" }}>
+        <Typography
+          variant="h4"
+          sx={{
+            fontWeight: "bold",
+            fontSize: { xs: "1.5rem", sm: "2rem", md: "2.125rem" },
+          }}
+        >
           All Notifications
         </Typography>
-        <FormControl size="small" sx={{ minWidth: 150 }}>
+
+        <FormControl size="small" sx={{ minWidth: { xs: "100%", sm: 150 } }}>
           <InputLabel id="filter-label">Filter by Type</InputLabel>
           <Select
             labelId="filter-label"
